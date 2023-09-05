@@ -1,4 +1,5 @@
 import styles from "./CountryItem.module.css";
+import { convertToEmoji } from "./Form";
 
 function CountryItem({ country }) {
   return (

@@ -37,16 +37,16 @@
       "id": 98443197
     },
     {
-      "cityName": "Brussels",
-      "country": "Germany",
-      "emoji": "🇩🇪",
-      "date": "2027-02-12T09:24:11.863Z",
-      "notes": "Amazing 😃",
+      "cityName": "Kiambu",
+      "country": "Kenya",
+      "emoji": "🇰🇪",
+      "date": "2023-09-05T13:49:20.584Z",
+      "notes": "Went Hiking",
       "position": {
-        "lat": 52.53586782505711,
-        "lng": 13.376933665713324
+        "lat": "-0.950960364609307",
+        "lng": "36.70532226562501"
       },
-      "id": 984437
+      "id": 98443202
     }
   ]
 }
