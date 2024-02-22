@@ -1,6 +1,12 @@
-import { createContext, useContext, useEffect, useReducer } from "react";
+import {
+  createContext,
+  useEffect,
+  useContext,
+  useReducer,
+  useCallback,
+} from "react";
 
-const BASE_URL = `http://localhost:8000`;
+const BASE_URL = "http://localhost:9000";
 
 const CitiesContext = createContext();
 
@@ -14,10 +20,7 @@ const initialState = {
 function reducer(state, action) {
   switch (action.type) {
     case "loading":
-      return {
-        ...state,
-        isLoading: true,
-      };
+      return { ...state, isLoading: true };
 
     case "cities/loaded":
       return {
@@ -27,11 +30,7 @@ function reducer(state, action) {
       };
 
     case "city/loaded":
-      return {
-        ...state,
-        isLoading: false,
-        currentCity: action.payload,
-      };
+      return { ...state, isLoading: false, currentCity: action.payload };
 
     case "city/created":
       return {
@@ -57,47 +56,57 @@ function reducer(state, action) {
       };
 
     default:
-      throw new Error("Unkown action type");
+      throw new Error("Unknown action type");
   }
 }
+
 function CitiesProvider({ children }) {
-  
-  const [{ cities, isLoading, currentCity }, dispatch] = useReducer(
+  const [{ cities, isLoading, currentCity, error }, dispatch] = useReducer(
     reducer,
     initialState
   );
 
   useEffect(function () {
-    async function getCities() {
+    async function fetchCities() {
       dispatch({ type: "loading" });
+
       try {
         const res = await fetch(`${BASE_URL}/cities`);
         const data = await res.json();
         dispatch({ type: "cities/loaded", payload: data });
       } catch {
-        dispatch({ type: "rejected", payload: "Error catching data" });
+        dispatch({
+          type: "rejected",
+          payload: "There was an error loading cities...",
+        });
       }
     }
-    getCities();
+    fetchCities();
   }, []);
 
-  async function getCity(id) {
-    if (Number(id) === currentCity.id) return;
-    dispatch({ type: "loading" });
-    try {
-      const res = await fetch(`${BASE_URL}/cities/${id}`);
-      const data = await res.json();
-      dispatch({ type: "city/loaded", payload: data });
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error creating the cities...",
-      });
-    }
-  }
+  const getCity = useCallback(
+    async function getCity(id) {
+      if (Number(id) === currentCity.id) return;
+
+      dispatch({ type: "loading" });
+
+      try {
+        const res = await fetch(`${BASE_URL}/cities/${id}`);
+        const data = await res.json();
+        dispatch({ type: "city/loaded", payload: data });
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error loading the city...",
+        });
+      }
+    },
+    [currentCity.id]
+  );
 
   async function createCity(newCity) {
     dispatch({ type: "loading" });
+
     try {
       const res = await fetch(`${BASE_URL}/cities`, {
         method: "POST",
@@ -107,11 +116,12 @@ function CitiesProvider({ children }) {
         },
       });
       const data = await res.json();
+
       dispatch({ type: "city/created", payload: data });
-    } catch (error) {
+    } catch {
       dispatch({
         type: "rejected",
-        payload: "There was an error deleting the cities...",
+        payload: "There was an error creating the city...",
       });
     }
   }
@@ -123,9 +133,13 @@ function CitiesProvider({ children }) {
       await fetch(`${BASE_URL}/cities/${id}`, {
         method: "DELETE",
       });
+
       dispatch({ type: "city/deleted", payload: id });
-    } catch (error) {
-      console.log("Deleting failed. Try again");
+    } catch {
+      dispatch({
+        type: "rejected",
+        payload: "There was an error deleting the city...",
+      });
     }
   }
 
@@ -135,6 +149,7 @@ function CitiesProvider({ children }) {
         cities,
         isLoading,
         currentCity,
+        error,
         getCity,
         createCity,
         deleteCity,
@@ -152,5 +167,4 @@ function useCities() {
   return context;
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export { CitiesProvider, useCities };
